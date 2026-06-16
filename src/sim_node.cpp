@@ -9,6 +9,9 @@
 #include <chrono>
 #include <thread>
 
+#include <fstream>
+#include <filesystem>
+
 void run_receiver(int listen_port)
 {
     // AF_INET: IPV4 protocol
@@ -33,6 +36,16 @@ void run_receiver(int listen_port)
         return;
     }
 
+    // create log folder and sim.log file to log receive message
+    std::filesystem::create_directories("logs");
+    std::ofstream log_file("logs/sim.log", std::ios::app);
+
+    if (!log_file.is_open()) {
+        std::cerr << "Failed to open log file\n";
+        close(sockfd);
+        return;
+    }
+
     std::cout << "Monitor listening on UDP port " << listen_port << "...\n";
 
     char buffer[1024];
@@ -53,6 +66,9 @@ void run_receiver(int listen_port)
         if (bytes_received > 0)
         {
             buffer[bytes_received] = '\0';
+            std::string log_entry = std::string("Received: ") + buffer;
+            std::cout << log_entry << "\n";
+            log_file << log_entry << std::endl;
             std::cout << "Received: " << buffer << "\n";
         }
     }
