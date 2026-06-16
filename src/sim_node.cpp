@@ -82,10 +82,20 @@ void run_sender(const std::string &node_name, const std::string &dest_ip, int de
     }
 
     int seq = 1;
+    std::string type = "HEARTBEAT";
+    if (node_name == "radar") {
+        type = "TRACK_UPDATE";
+    }
+    else if (node_name == "command") {
+        type = "STATUS_REQUEST";
+    }
+    else if (node_name == "sensor") {
+        type = "SENSOR_READING";
+    }
 
     while (true)
     {
-        std::string message = "NODE=" + node_name + ";TYPE=HEARTBEAT;SEQ=" + std::to_string(seq);
+        std::string message = "NODE=" + node_name + ";TYPE=" + type + ";SEQ=" + std::to_string(seq);
 
         ssize_t bytes_sent = sendto(sockfd, message.c_str(), message.size(), 0, reinterpret_cast<sockaddr *>(&dest_addr), sizeof(dest_addr));
 
