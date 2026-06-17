@@ -1,0 +1,6 @@
+build/
+logs/
+captures/
+.git/
+*.pcap
+__pycache__/
