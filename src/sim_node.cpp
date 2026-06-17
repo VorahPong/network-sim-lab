@@ -5,12 +5,35 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <netdb.h>
 
 #include <chrono>
 #include <thread>
 
 #include <fstream>
 #include <filesystem>
+
+bool resolve_destination(const std::string &dest_host, int dest_port, sockaddr_in &dest_addr) {
+    addrinfo hints{};
+    addrinfo *result = nullptr;
+
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+
+    std::string port_string = std::to_string(dest_port);
+
+    int status = getaddrinfo(dest_host.c_str(), port_string.c_str(), &hints, &result);
+
+    if (status != 0) {
+        std::cerr << "Failed to resolve destination: " << gai_strerror(status) << "\n";
+        return false;
+    }
+
+    dest_addr = *reinterpret_cast<sockaddr_in *>(result->ai_addr);
+    freeaddrinfo(result);
+
+    return true;
+}
 
 void run_receiver(int listen_port)
 {
@@ -87,12 +110,17 @@ void run_sender(const std::string &node_name, const std::string &dest_ip, int de
     }
 
     sockaddr_in dest_addr{};
-    dest_addr.sin_family = AF_INET;
-    dest_addr.sin_port = htons(dest_port);
+    // dest_addr.sin_family = AF_INET;
+    // dest_addr.sin_port = htons(dest_port);
 
-    if (inet_pton(AF_INET, dest_ip.c_str(), &dest_addr.sin_addr) <= 0)
-    {
-        std::cerr << "Invalid destination IP address\n";
+    // if (inet_pton(AF_INET, dest_ip.c_str(), &dest_addr.sin_addr) <= 0)
+    // {
+    //     std::cerr << "Invalid destination IP address\n";
+    //     close(sockfd);
+    //     return;
+    // }
+
+    if (!resolve_destination(dest_ip, dest_port, dest_addr)) {
         close(sockfd);
         return;
     }

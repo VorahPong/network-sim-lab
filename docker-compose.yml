@@ -1,0 +1,36 @@
+services:
+  monitor:
+    build: .
+    command: ./build/sim_node receiver 5000
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - simnet
+
+  radar:
+    build: .
+    command: ./build/sim_node sender radar monitor 5000
+    depends_on:
+      - monitor
+    networks:
+      - simnet
+
+  command:
+    build: .
+    command: ./build/sim_node sender command monitor 5000
+    depends_on:
+      - monitor
+    networks:
+      - simnet
+
+  sensor:
+    build: .
+    command: ./build/sim_node sender sensor monitor 5000
+    depends_on:
+      - monitor
+    networks:
+      - simnet
+
+networks:
+  simnet:
+    driver: bridge
