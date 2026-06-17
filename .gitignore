@@ -1,5 +1,5 @@
 build/
-logs/*.log
+logs/
 __pycache__/
 *.pcap
 captures/
